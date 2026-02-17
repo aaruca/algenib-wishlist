@@ -3,7 +3,7 @@
  * Plugin Name: Algenib Wishlist
  * Plugin URI:  https://algenib.io
  * Description: A complete, high-performance Wishlist plugin with native Bricks Builder integration and Doofinder compatibility.
- * Version:     1.0.5
+ * Version:     1.0.6
  * Author:      Algenib
  * Author URI:  https://algenib.io
  * Text Domain: algenib-wishlist
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define Constants
-define('ALG_WISHLIST_VERSION', '1.0.5');
+define('ALG_WISHLIST_VERSION', '1.0.6');
 define('ALG_WISHLIST_FILE', __FILE__);
 define('ALG_WISHLIST_PATH', plugin_dir_path(__FILE__));
 define('ALG_WISHLIST_URL', plugin_dir_url(__FILE__));
