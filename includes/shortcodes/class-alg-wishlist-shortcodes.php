@@ -49,7 +49,7 @@ class Alg_Wishlist_Shortcodes
             </svg>
             <?php if (!empty($atts['text'])): ?>
                 <span class="alg-btn-text">
-                                <?php echo esc_html($atts['text']); ?>
+                    <?php echo esc_html($atts['text']); ?>
                 </span>
             <?php endif; ?>
 
@@ -77,31 +77,50 @@ class Alg_Wishlist_Shortcodes
 
         ob_start();
         ?>
-                <div class="alg-wishlist-grid">
-                    <?php foreach ($items as $product_id):
-                        $product = wc_get_product($product_id);
-                        if (!$product)
-                            continue;
-                        ?>
-                            <div class="alg-wishlist-item" data-product-id="<?php echo esc_attr($product_id); ?>">
-                                <div class="alg-wishlist-item-thumb">
-                                    <?php echo $product->get_image(); ?>
-                                </div>
-                                <div class="alg-wishlist-item-details">
-                                    <h3><a href="<?php echo esc_url($product->get_permalink()); ?>"><?php echo $product->get_name(); ?></a></h3>
-                                    <div class="alg-wishlist-item-price">
-                                        <?php echo $product->get_price_html(); ?>
-                                    </div>
-                                    <div class="alg-wishlist-item-actions">
-                                        <a href="?add-to-cart=<?php echo esc_attr($product_id); ?>" class="button alt"><?php esc_html_e('Add to Cart', 'algenib-wishlist'); ?></a>
-                                        <button type="button" class="alg-remove-from-wishlist" data-product-id="<?php echo esc_attr($product_id); ?>"><?php esc_html_e('Remove', 'algenib-wishlist'); ?></button>
-                                    </div>
-                                </div>
-                            </div>
-                    <?php endforeach; ?>
+        <div class="alg-wishlist-grid">
+            <?php if (empty($items)): ?>
+                <div class="alg-wishlist-empty">
+                    <p><?php esc_html_e('Your wishlist is currently empty.', 'algenib-wishlist'); ?></p>
+                    <a href="<?php echo esc_url(get_permalink(wc_get_page_id('shop'))); ?>" class="button alg-return-shop">
+                        <?php esc_html_e('Return to Shop', 'algenib-wishlist'); ?>
+                    </a>
                 </div>
-                <?php
-                return ob_get_clean();
+            <?php else: ?>
+                <?php foreach ($items as $product_id):
+                    $product = wc_get_product($product_id);
+                    if (!$product)
+                        continue;
+                    ?>
+                    <div class="alg-wishlist-card" data-product-id="<?php echo esc_attr($product_id); ?>">
+                        <div class="alg-card-image">
+                            <a href="<?php echo esc_url($product->get_permalink()); ?>">
+                                <?php echo $product->get_image('woocommerce_thumbnail'); ?>
+                            </a>
+                            <button type="button" class="alg-remove-btn" data-product-id="<?php echo esc_attr($product_id); ?>"
+                                aria-label="<?php esc_attr_e('Remove', 'algenib-wishlist'); ?>">
+                                &times;
+                            </button>
+                        </div>
+                        <div class="alg-card-details">
+                            <h3 class="alg-card-title">
+                                <a href="<?php echo esc_url($product->get_permalink()); ?>"><?php echo $product->get_name(); ?></a>
+                            </h3>
+                            <div class="alg-card-price">
+                                <?php echo $product->get_price_html(); ?>
+                            </div>
+                            <div class="alg-card-actions">
+                                <a href="<?php echo esc_url($product->add_to_cart_url()); ?>" class="button alg-add-cart-btn"
+                                    data-product_id="<?php echo esc_attr($product_id); ?>" data-quantity="1">
+                                    <?php esc_html_e('Add to Cart', 'algenib-wishlist'); ?>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
 }

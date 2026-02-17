@@ -79,13 +79,13 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'docs';
 						Layer Template</strong> (Product Card):</p>
 				<pre
 					style="background: #f3f2f1; padding: 15px; border-radius: 4px; overflow-x: auto; font-family: Consolas;">
-		&lt;button 
-		type="button" 
-		class="wbw-doofinder-btn" 
-		data-product-id="&lt;%= @item["id"] %&gt;"
-		title="Add to Wishlist"&gt;
-		&lt;svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"&gt;&lt;/path&gt;&lt;/svg&gt;
-		&lt;/button&gt;</pre>
+			&lt;button 
+			type="button" 
+			class="wbw-doofinder-btn" 
+			data-product-id="&lt;%= @item["id"] %&gt;"
+			title="Add to Wishlist"&gt;
+			&lt;svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"&gt;&lt;/path&gt;&lt;/svg&gt;
+			&lt;/button&gt;</pre>
 
 				<p><em>The plugin javascript will automatically detect this button and handle the logic.</em></p>
 			</div>
@@ -101,7 +101,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'docs';
 					submit_button('Save Settings');
 					?>
 				</form>
-				</form>
+
 
 				<hr style="margin: 30px 0;">
 
@@ -109,8 +109,8 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'docs';
 				<p>This plugin updates automatically from GitHub. You can force a check manually below.</p>
 				<?php if (isset($_GET['update-checked'])): ?>
 					<div class="notice notice-success inline">
-						<p>Update check initiated! Please refresh the <a
-								href="<?php echo admin_url('plugins.php'); ?>">Plugins page</a> to see if a new version is
+						<p>Update check initiated! Please refresh the <a href="<?php echo admin_url('plugins.php'); ?>">Plugins
+								page</a> to see if a new version is
 							available.</p>
 					</div>
 				<?php endif; ?>

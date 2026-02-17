@@ -51,23 +51,120 @@ class Alg_Wishlist_Assets
             /* Toast Notification */
             .alg-wishlist-toast {
                 position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #333;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.9);
+                background: rgba(33, 33, 33, 0.95);
                 color: #fff;
-                padding: 12px 24px;
-                border-radius: 4px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 9999;
+                padding: 20px 40px;
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 99999;
                 opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.3s, transform 0.3s;
-                font-size: 14px;
+                visibility: hidden;
+                transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                font-size: 16px;
+                font-weight: 500;
+                text-align: center;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,255,255,0.1);
             }
             .alg-wishlist-toast.show {
                 opacity: 1;
-                transform: translateY(0);
+                visibility: visible;
+                transform: translate(-50%, -50%) scale(1);
             }
+
+            /* Wishlist Grid & Cards */
+            .alg-wishlist-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 20px;
+                margin-top: 20px;
+            }
+            .alg-wishlist-card {
+                background: #fff;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                overflow: hidden;
+                transition: transform 0.2s, box-shadow 0.2s;
+                position: relative;
+            }
+            .alg-wishlist-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            }
+            .alg-card-image {
+                position: relative;
+                padding-bottom: 100%; /* 1:1 Aspect Ratio */
+                overflow: hidden;
+                background: #f9f9f9;
+            }
+            .alg-card-image img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .alg-remove-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255,255,255,0.9);
+                border: none;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                line-height: 28px;
+                text-align: center;
+                cursor: pointer;
+                color: #ff4b4b;
+                font-size: 18px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+            .alg-remove-btn:hover {
+                background: #ff4b4b;
+                color: #fff;
+            }
+            .alg-card-details {
+                padding: 15px;
+                text-align: center;
+            }
+            .alg-card-title {
+                font-size: 15px;
+                margin: 0 0 8px;
+                line-height: 1.3;
+            }
+            .alg-card-title a {
+                text-decoration: none;
+                color: inherit;
+            }
+            .alg-card-price {
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 12px;
+            }
+            .alg-card-actions .button {
+                width: 100%;
+                font-size: 13px;
+                padding: 8px 0;
+            }
+            .alg-wishlist-empty {
+                grid-column: 1 / -1;
+                text-align: center;
+                padding: 40px;
+                background: #f8f8f8;
+                border-radius: 8px;
+                color: #666;
+            }
+
         ";
 
         wp_add_inline_style('alg-wishlist-css', $custom_css);

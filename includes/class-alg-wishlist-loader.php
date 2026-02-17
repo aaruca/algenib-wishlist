@@ -86,11 +86,9 @@ class Alg_Wishlist_Loader
     public function load_integrations()
     {
         // Bricks Integration
-        if (defined('BRICKS_VERSION')) {
-            require_once ALG_WISHLIST_PATH . 'includes/integrations/class-alg-wishlist-bricks.php';
-            // Initialize Bricks elements registration
-            Alg_Wishlist_Bricks::init();
-        }
+        require_once ALG_WISHLIST_PATH . 'includes/integrations/class-alg-wishlist-bricks.php';
+        // Initialize Bricks elements registration
+        Alg_Wishlist_Bricks::init();
 
         // Doofinder Integration
         require_once ALG_WISHLIST_PATH . 'includes/integrations/class-alg-wishlist-doofinder.php';
