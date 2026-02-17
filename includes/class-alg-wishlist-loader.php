@@ -74,7 +74,7 @@ class Alg_Wishlist_Loader
         if (is_admin()) {
             require_once ALG_WISHLIST_PATH . 'includes/class-alg-wishlist-updater.php';
             // Change 'algenib-io' to your actual GitHub Org/User
-            new Alg_Wishlist_Updater(ALG_WISHLIST_FILE, 'algenib-io', 'algenib-wishlist');
+            new Alg_Wishlist_Updater(ALG_WISHLIST_FILE, 'aaruca', 'algenib-wishlist', ALG_WISHLIST_VERSION);
         }
     }
 

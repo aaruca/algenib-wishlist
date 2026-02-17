@@ -1,122 +1,430 @@
 <?php
-
 /**
- * GitHub Auto Updater
- * 
- * Handles plugin updates directly from GitHub releases.
+ * Algenib Wishlist GitHub Updater.
  *
- * @package    Algenib_Wishlist
- * @subpackage Algenib_Wishlist/includes
+ * Handles plugin updates via GitHub Releases, allowing for auto-updates
+ * similar to WordPress.org plugins. Checks the GitHub API for new tags
+ * and injects update information into WordPress's transient.
+ *
+ * @package Algenib_Wishlist
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class Alg_Wishlist_Updater
 {
 
-    private $slug;
-    private $plugin_data;
-    private $username;
-    private $repo;
-    private $plugin_file;
-    private $github_response;
+    /**
+     * GitHub repository owner.
+     *
+     * @var string
+     */
+    private $github_user;
 
-    public function __construct($plugin_file, $github_username, $github_repo)
+    /**
+     * GitHub repository name.
+     *
+     * @var string
+     */
+    private $github_repo;
+
+    /**
+     * Plugin basename (e.g. "algenib-wishlist/algenib-wishlist.php").
+     *
+     * @var string
+     */
+    private $plugin_basename;
+
+    /**
+     * Current plugin version.
+     *
+     * @var string
+     */
+    private $current_version;
+
+    /**
+     * Plugin slug.
+     *
+     * @var string
+     */
+    private $plugin_slug;
+
+    /**
+     * Cached GitHub API response.
+     *
+     * @var object|null
+     */
+    private $github_response = null;
+
+    /**
+     * Constructor.
+     *
+     * @param string $plugin_basename Plugin basename.
+     * @param string $github_user     GitHub username or org.
+     * @param string $github_repo     Repository name.
+     * @param string $current_version Current version string.
+     */
+    public function __construct($plugin_basename, $github_user, $github_repo, $current_version)
     {
-        $this->plugin_file = $plugin_file;
-        $this->username = $github_username;
-        $this->repo = $github_repo;
-        $this->slug = plugin_basename($plugin_file);
-
-        add_filter('pre_set_site_transient_update_plugins', array($this, 'modify_transient'), 10, 1);
-        add_filter('plugins_api', array($this, 'plugin_popup'), 10, 3);
-        add_filter('upgrader_post_install', array($this, 'after_install'), 10, 3);
+        $this->github_user = $github_user;
+        $this->github_repo = $github_repo;
+        $this->plugin_basename = $plugin_basename;
+        $this->current_version = $current_version;
+        $this->plugin_slug = dirname($plugin_basename);
     }
 
-    private function get_repo_release_info()
+    /**
+     * Initialize update hooks.
+     */
+    public function init()
     {
-        if (!empty($this->github_response)) {
+        add_filter('pre_set_site_transient_update_plugins', array($this, 'check_update'));
+        add_filter('plugins_api', array($this, 'plugin_info'), 10, 3);
+        add_filter('upgrader_post_install', array($this, 'post_install'), 10, 3);
+
+        // Add "Check for updates" link on the Plugins list page.
+        add_filter('plugin_action_links_' . $this->plugin_basename, array($this, 'add_check_update_link'));
+
+        // Show inline update notice row if update available.
+        add_action('after_plugin_row_' . $this->plugin_basename, array($this, 'show_update_notice'), 10, 2);
+
+        // Admin notice when GitHub API fails due to missing token.
+        add_action('admin_notices', array($this, 'maybe_show_token_notice'));
+
+        // Handle force-check request from plugins page link.
+        add_action('admin_init', array($this, 'handle_force_check'));
+    }
+
+    /**
+     * Add "Check for updates" action link to plugins list.
+     *
+     * @param array $links Existing action links.
+     * @return array Modified links.
+     */
+    public function add_check_update_link($links)
+    {
+        $check_url = wp_nonce_url(
+            admin_url('plugins.php?alg_wishlist_force_check=1'),
+            'alg_wishlist_force_check'
+        );
+        $links['check_update'] = '<a href="' . esc_url($check_url) . '">' . esc_html__('Check for updates', 'algenib-wishlist') . '</a>';
+        return $links;
+    }
+
+    /**
+     * Handle force-check request from the plugins page link.
+     * Called early via admin_init.
+     */
+    public function handle_force_check()
+    {
+        if (empty($_GET['alg_wishlist_force_check'])) {
+            return;
+        }
+
+        check_admin_referer('alg_wishlist_force_check');
+
+        if (!current_user_can('update_plugins')) {
+            return;
+        }
+
+        $this->force_check();
+
+        // Redirect back to plugins page with result message.
+        $update_transient = get_site_transient('update_plugins');
+        $has_update = isset($update_transient->response[$this->plugin_basename]);
+
+        wp_safe_redirect(add_query_arg(
+            'alg_wishlist_checked',
+            $has_update ? 'update_available' : 'up_to_date',
+            admin_url('plugins.php')
+        ));
+        exit;
+    }
+
+    /**
+     * Force a fresh update check — clears all caches.
+     */
+    public function force_check()
+    {
+        $this->github_response = null;
+        delete_transient('alg_wishlist_github_release');
+        delete_transient('alg_wishlist_github_api_error');
+        delete_site_transient('update_plugins');
+        wp_update_plugins();
+    }
+
+    /**
+     * Show inline update notice below the plugin row.
+     *
+     * @param string $file   Plugin basename.
+     * @param array  $plugin Plugin data.
+     */
+    public function show_update_notice($file, $plugin)
+    {
+        // Show feedback message after force-check.
+        if (!empty($_GET['alg_wishlist_checked'])) {
+            $msg = ('update_available' === $_GET['alg_wishlist_checked'])
+                ? __('Update found! Click "update now" above.', 'algenib-wishlist')
+                : sprintf(__('You are running the latest version (v%s).', 'algenib-wishlist'), $this->current_version);
+
+            echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange">';
+            echo '<div class="notice inline notice-info"><p>' . esc_html($msg) . '</p></div>';
+            echo '</td></tr>';
+        }
+    }
+
+    /**
+     * Show admin notice if GitHub API failed due to missing auth token.
+     */
+    public function maybe_show_token_notice()
+    {
+        $error = get_transient('alg_wishlist_github_api_error');
+        if (!$error || !current_user_can('manage_options')) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning is-dismissible">';
+        echo '<p><strong>Algenib Wishlist:</strong> ' . esc_html($error) . '</p>';
+        echo '</div>';
+    }
+
+    /**
+     * Fetch the latest release from GitHub API.
+     *
+     * @return object|null Release data or null on failure.
+     */
+    private function get_github_release()
+    {
+        if (null !== $this->github_response) {
             return $this->github_response;
         }
 
-        $request_uri = sprintf('https://api.github.com/repos/%s/%s/releases', $this->username, $this->repo);
+        // Check transient cache first (avoid hammering GitHub API).
+        $cache_key = 'alg_wishlist_github_release';
+        $cached = get_transient($cache_key);
 
-        // Add authentication if private repo (via transient or option)
-        // For now assuming public repo or token header added via filter if needed.
-
-        $response = wp_remote_get($request_uri);
-
-        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
-            return false;
+        if (false !== $cached) {
+            $this->github_response = $cached;
+            return $cached;
         }
 
-        $releases = json_decode(wp_remote_retrieve_body($response));
-        if (is_array($releases) && !empty($releases)) {
-            $this->github_response = $releases[0]; // Get latest
+        $url = sprintf(
+            'https://api.github.com/repos/%s/%s/releases/latest',
+            $this->github_user,
+            $this->github_repo
+        );
+
+        $headers = array(
+            'Accept' => 'application/vnd.github.v3+json',
+            'User-Agent' => 'Algenib-Wishlist-Updater/' . $this->current_version,
+        );
+
+        // Support private repos via token defined in wp-config.php:
+        // define( 'ALG_WISHLIST_GITHUB_TOKEN', 'ghp_xxxxx' );
+        if (defined('ALG_WISHLIST_GITHUB_TOKEN') && ALG_WISHLIST_GITHUB_TOKEN) {
+            $headers['Authorization'] = 'token ' . ALG_WISHLIST_GITHUB_TOKEN;
         }
 
-        return $this->github_response;
+        $response = wp_remote_get($url, array(
+            'headers' => $headers,
+            'timeout' => 10,
+        ));
+
+        if (is_wp_error($response)) {
+            set_transient('alg_wishlist_github_api_error', __('Could not connect to GitHub. Check your server\'s outbound connectivity.', 'algenib-wishlist'), HOUR_IN_SECONDS);
+            return null;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+
+        if (200 !== $status_code) {
+            // Detect private repo without token.
+            if (404 === $status_code && (!defined('ALG_WISHLIST_GITHUB_TOKEN') || !ALG_WISHLIST_GITHUB_TOKEN)) {
+                set_transient(
+                    'alg_wishlist_github_api_error',
+                    sprintf(
+                        /* translators: %s: constant name */
+                        __('Auto-updates disabled — the GitHub repo is private. Add %s to wp-config.php with a valid Personal Access Token.', 'algenib-wishlist'),
+                        'ALG_WISHLIST_GITHUB_TOKEN'
+                    ),
+                    DAY_IN_SECONDS
+                );
+            } elseif (403 === $status_code) {
+                set_transient('alg_wishlist_github_api_error', __('GitHub API rate limit exceeded. Updates will retry in 1 hour.', 'algenib-wishlist'), HOUR_IN_SECONDS);
+            } elseif (401 === $status_code) {
+                set_transient('alg_wishlist_github_api_error', __('GitHub token is invalid or expired. Please update ALG_WISHLIST_GITHUB_TOKEN in wp-config.php.', 'algenib-wishlist'), DAY_IN_SECONDS);
+            }
+            return null;
+        }
+
+        // Clear any previous error on success.
+        delete_transient('alg_wishlist_github_api_error');
+
+        $body = json_decode(wp_remote_retrieve_body($response));
+
+        if (empty($body) || empty($body->tag_name)) {
+            return null;
+        }
+
+        $this->github_response = $body;
+
+        // Cache for 6 hours.
+        set_transient($cache_key, $body, 6 * HOUR_IN_SECONDS);
+
+        return $body;
     }
 
-    public function modify_transient($transient)
+    /**
+     * Check for updates and inject into WordPress update transient.
+     *
+     * @param object $transient Update transient data.
+     * @return object Modified transient.
+     */
+    public function check_update($transient)
     {
-        if (property_exists($transient, 'checked') && $transient->checked) {
-            $this->get_repo_release_info();
+        if (empty($transient->checked)) {
+            return $transient;
+        }
 
-            $out_of_date = version_compare($this->github_response->tag_name, $transient->checked[$this->slug], 'gt');
+        $release = $this->get_github_release();
 
-            if ($out_of_date) {
-                $new_files = $this->github_response->assets[0]->browser_download_url ?? $this->github_response->zipball_url;
+        if (!$release) {
+            return $transient;
+        }
 
-                $slug = current(explode('/', $this->slug));
+        // Strip leading "v" from tag if present (e.g. "v1.0.1" → "1.0.1").
+        $latest_version = ltrim($release->tag_name, 'v');
 
-                $plugin = array(
-                    'url' => $this->plugin_data['PluginURI'] ?? '',
-                    'slug' => $slug,
-                    'package' => $new_files,
-                    'new_version' => $this->github_response->tag_name,
-                );
+        if (version_compare($latest_version, $this->current_version, '>')) {
+            $download_url = $this->get_download_url($release);
 
-                $transient->response[$this->slug] = (object) $plugin;
+            if ($download_url) {
+                $plugin_data = new stdClass();
+                $plugin_data->slug = $this->plugin_slug;
+                $plugin_data->plugin = $this->plugin_basename;
+                $plugin_data->new_version = $latest_version;
+                $plugin_data->url = $release->html_url;
+                $plugin_data->package = $download_url;
+                $plugin_data->icons = array();
+                $plugin_data->banners = array();
+                $plugin_data->tested = '';
+                $plugin_data->requires = '6.0';
+                $plugin_data->requires_php = '7.4';
+
+                $transient->response[$this->plugin_basename] = $plugin_data;
             }
         }
 
         return $transient;
     }
 
-    public function plugin_popup($result, $action, $args)
+    /**
+     * Provide plugin information for the "View details" popup.
+     *
+     * @param false|object|array $result Plugin info result.
+     * @param string             $action API action.
+     * @param object             $args   API args.
+     * @return false|object
+     */
+    public function plugin_info($result, $action, $args)
     {
         if ('plugin_information' !== $action) {
             return $result;
         }
 
-        if ($args->slug !== current(explode('/', $this->slug))) {
+        if (empty($args->slug) || $args->slug !== $this->plugin_slug) {
             return $result;
         }
 
-        $this->get_repo_release_info();
+        $release = $this->get_github_release();
 
-        $plugin = array(
-            'name' => $this->plugin_data['Name'] ?? 'Algenib Wishlist',
-            'slug' => $this->slug,
-            'version' => $this->github_response->tag_name,
-            'author' => $this->plugin_data['AuthorName'] ?? 'Algenib',
-            'homepage' => $this->plugin_data['PluginURI'] ?? '',
-            'requires' => '5.0',
-            'tested' => '6.4',
-            'download_link' => $this->github_response->assets[0]->browser_download_url ?? $this->github_response->zipball_url,
-            'sections' => array(
-                'description' => $this->github_response->body
-            )
-        );
+        if (!$release) {
+            return $result;
+        }
 
-        return (object) $plugin;
+        $latest_version = ltrim($release->tag_name, 'v');
+
+        $info = new stdClass();
+        $info->name = 'Algenib Wishlist';
+        $info->slug = $this->plugin_slug;
+        $info->version = $latest_version;
+        $info->author = '<a href="https://github.com/' . esc_attr($this->github_user) . '">Algenib</a>';
+        $info->homepage = 'https://github.com/' . $this->github_user . '/' . $this->github_repo;
+        $info->requires = '6.0';
+        $info->tested = '';
+        $info->requires_php = '7.4';
+        $info->downloaded = 0;
+        $info->last_updated = $release->published_at;
+        $info->download_link = $this->get_download_url($release);
+
+        // Use release body as changelog (Markdown → HTML).
+        if (!empty($release->body)) {
+            $info->sections = array(
+                'description' => 'A complete, high-performance Wishlist plugin with native Bricks Builder integration and Doofinder compatibility.',
+                'changelog' => nl2br(esc_html($release->body)),
+            );
+        }
+
+        return $info;
     }
 
-    public function after_install($response, $hook_extra, $result)
+    /**
+     * Fix directory name after update.
+     *
+     * GitHub zips use "repo-tag" as folder name. This renames it to our plugin slug.
+     *
+     * @param bool  $response   Install response.
+     * @param array $hook_extra Extra data.
+     * @param array $result     Install result.
+     * @return array Modified result.
+     */
+    public function post_install($response, $hook_extra, $result)
     {
+        if (!isset($hook_extra['plugin']) || $hook_extra['plugin'] !== $this->plugin_basename) {
+            return $result;
+        }
+
         global $wp_filesystem;
-        $install_directory = plugin_dir_path($this->plugin_file);
-        $wp_filesystem->move($result['destination'], $install_directory);
-        $result['destination'] = $install_directory;
+
+        $proper_destination = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
+
+        // Move from GitHub's folder name to our expected plugin slug.
+        $wp_filesystem->move($result['destination'], $proper_destination);
+        $result['destination'] = $proper_destination;
+        $result['destination_name'] = $this->plugin_slug;
+
+        // Re-activate the plugin.
+        activate_plugin($this->plugin_basename);
+
         return $result;
     }
+
+    /**
+     * Get the download URL from a release.
+     *
+     * Prefers a .zip release asset. Falls back to GitHub's auto-generated zipball.
+     *
+     * @param object $release GitHub release object.
+     * @return string Download URL.
+     */
+    private function get_download_url($release)
+    {
+        // Check for a .zip asset attached to the release.
+        if (!empty($release->assets) && is_array($release->assets)) {
+            foreach ($release->assets as $asset) {
+                if (isset($asset->content_type) && 'application/zip' === $asset->content_type) {
+                    return $asset->browser_download_url;
+                }
+                if (isset($asset->name) && substr($asset->name, -4) === '.zip') {
+                    return $asset->browser_download_url;
+                }
+            }
+        }
+
+        // Fallback: GitHub's auto-generated source zipball.
+        return $release->zipball_url;
+    }
 }
+
