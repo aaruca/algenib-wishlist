@@ -24,6 +24,7 @@ class Alg_Wishlist_Admin
             'dashicons-heart',
             56
         );
+        add_action('admin_post_alg_check_updates', array($this, 'handle_update_check'));
     }
 
     /**
@@ -97,5 +98,24 @@ class Alg_Wishlist_Admin
     public function display_plugin_admin_page()
     {
         require_once ALG_WISHLIST_PATH . 'admin/partials/alg-wishlist-admin-display.php';
+    }
+
+    /**
+     * Handle Manual Update Check
+     * Deletes the 'update_plugins' transient to force a refresh.
+     */
+    public function handle_update_check()
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        check_admin_referer('alg_check_updates_action', 'alg_nonce');
+
+        delete_site_transient('update_plugins');
+        delete_transient('alg_wishlist_gh_release'); // If you used any custom cache in Updater
+
+        wp_redirect(admin_url('admin.php?page=algenib-wishlist&tab=settings&update-checked=1'));
+        exit;
     }
 }
