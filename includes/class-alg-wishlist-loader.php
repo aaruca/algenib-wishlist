@@ -39,7 +39,11 @@ class Alg_Wishlist_Loader
 
     private function define_admin_hooks()
     {
-        // Admin hooks here
+        if (is_admin()) {
+            require_once ALG_WISHLIST_PATH . 'includes/class-alg-wishlist-admin.php';
+            $admin = new Alg_Wishlist_Admin();
+            add_action('admin_menu', array($admin, 'add_plugin_admin_menu'));
+        }
     }
 
     private function define_public_hooks()
