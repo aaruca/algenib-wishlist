@@ -27,6 +27,14 @@ class Alg_Wishlist_Admin
     }
 
     /**
+     * Enqueue Admin Styles
+     */
+    public function enqueue_styles()
+    {
+        wp_enqueue_style('alg-wishlist-admin-css', ALG_WISHLIST_URL . 'admin/css/alg-wishlist-admin.css', array(), ALG_WISHLIST_VERSION, 'all');
+    }
+
+    /**
      * Register Plugin Settings
      */
     public function register_settings()

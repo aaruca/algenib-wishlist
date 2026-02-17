@@ -1,0 +1,156 @@
+/* Fluent UI / Microsoft Style Variables */
+:root {
+    --alg-bg-color: #f3f2f1;
+    --alg-card-bg: #ffffff;
+    --alg-primary: #0078d4;
+    --alg-primary-hover: #106ebe;
+    --alg-text-primary: #201f1e;
+    --alg-text-secondary: #605e5c;
+    --alg-border-color: #edebe9;
+    --alg-font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    --alg-shadow-card: 0 1.6px 3.6px 0 rgba(0, 0, 0, .132), 0 0.3px 0.9px 0 rgba(0, 0, 0, .108);
+}
+
+.alg-wrapper {
+    background-color: var(--alg-bg-color);
+    font-family: var(--alg-font-family);
+    color: var(--alg-text-primary);
+    padding: 20px;
+    margin-left: -20px;
+    /* Counteract WP wrap margin */
+    min-height: calc(100vh - 32px);
+    box-sizing: border-box;
+}
+
+.alg-header {
+    margin-bottom: 24px;
+    padding: 0 20px;
+}
+
+.alg-header h1 {
+    font-weight: 600;
+    font-size: 24px;
+    margin: 0;
+    padding: 0;
+    color: var(--alg-text-primary);
+}
+
+.alg-nav-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid var(--alg-border-color);
+    padding: 0 20px;
+    margin-bottom: 24px;
+    background: var(--alg-card-bg);
+}
+
+.alg-nav-tab {
+    text-decoration: none;
+    color: var(--alg-text-secondary);
+    padding: 12px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.alg-nav-tab:hover {
+    color: var(--alg-primary);
+}
+
+.alg-nav-tab.active {
+    color: var(--alg-primary);
+}
+
+.alg-nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--alg-primary);
+    border-radius: 2px 2px 0 0;
+}
+
+.alg-content-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.alg-card {
+    background: var(--alg-card-bg);
+    box-shadow: var(--alg-shadow-card);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.alg-card h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.alg-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+}
+
+.alg-card p,
+.alg-card li {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--alg-text-primary);
+}
+
+.alg-card hr {
+    border: 0;
+    border-top: 1px solid var(--alg-border-color);
+    margin: 24px 0;
+}
+
+/* WP Settings Form Overrides */
+.form-table th {
+    font-weight: 600;
+    color: var(--alg-text-secondary);
+}
+
+input[type="text"],
+textarea {
+    border: 1px solid #8a8886 !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+    border-color: var(--alg-primary) !important;
+    outline: 1px solid var(--alg-primary) !important;
+}
+
+.button.button-primary {
+    background: var(--alg-primary) !important;
+    border-color: var(--alg-primary) !important;
+    box-shadow: none !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    padding: 4px 20px !important;
+    height: 32px !important;
+    line-height: 22px !important;
+    transition: background 0.2s;
+}
+
+.button.button-primary:hover {
+    background: var(--alg-primary-hover) !important;
+}
+
+code {
+    background: #f3f2f1;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: Consolas, "Courier New", monospace;
+}
