@@ -27,6 +27,63 @@ class Alg_Wishlist_Admin
     }
 
     /**
+     * Register Plugin Settings
+     */
+    public function register_settings()
+    {
+        register_setting('alg_wishlist_options', 'alg_wishlist_settings');
+
+        add_settings_section(
+            'alg_wishlist_style_section',
+            'Global Styles',
+            null,
+            'algenib-wishlist'
+        );
+
+        add_settings_field(
+            'alg_wishlist_color_primary',
+            'Primary Color (Heart)',
+            array($this, 'render_color_picker'),
+            'algenib-wishlist',
+            'alg_wishlist_style_section',
+            array('label_for' => 'alg_wishlist_color_primary', 'default' => '#ff4b4b')
+        );
+
+        add_settings_field(
+            'alg_wishlist_color_active',
+            'Active Color (Filled)',
+            array($this, 'render_color_picker'),
+            'algenib-wishlist',
+            'alg_wishlist_style_section',
+            array('label_for' => 'alg_wishlist_color_active', 'default' => '#cc0000')
+        );
+
+        add_settings_field(
+            'alg_wishlist_custom_css',
+            'Custom CSS',
+            array($this, 'render_textarea'),
+            'algenib-wishlist',
+            'alg_wishlist_style_section',
+            array('label_for' => 'alg_wishlist_custom_css')
+        );
+    }
+
+    public function render_color_picker($args)
+    {
+        $options = get_option('alg_wishlist_settings');
+        $value = isset($options[$args['label_for']]) ? $options[$args['label_for']] : $args['default'];
+        echo '<input type="color" id="' . esc_attr($args['label_for']) . '" name="alg_wishlist_settings[' . esc_attr($args['label_for']) . ']" value="' . esc_attr($value) . '">';
+    }
+
+    public function render_textarea($args)
+    {
+        $options = get_option('alg_wishlist_settings');
+        $value = isset($options[$args['label_for']]) ? $options[$args['label_for']] : '';
+        echo '<textarea id="' . esc_attr($args['label_for']) . '" name="alg_wishlist_settings[' . esc_attr($args['label_for']) . ']" rows="5" cols="50" class="large-text code">' . esc_textarea($value) . '</textarea>';
+        echo '<p class="description">Add your own CSS overrides here.</p>';
+    }
+
+    /**
      * Render the admin page.
      */
     public function display_plugin_admin_page()

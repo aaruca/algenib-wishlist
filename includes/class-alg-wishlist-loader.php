@@ -43,6 +43,7 @@ class Alg_Wishlist_Loader
             require_once ALG_WISHLIST_PATH . 'includes/class-alg-wishlist-admin.php';
             $admin = new Alg_Wishlist_Admin();
             add_action('admin_menu', array($admin, 'add_plugin_admin_menu'));
+            add_action('admin_init', array($admin, 'register_settings'));
         }
     }
 
