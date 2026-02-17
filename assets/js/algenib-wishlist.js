@@ -74,6 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Force UI update to remove it
                             const btn = document.querySelector(`.alg-add-to-wishlist[data-product-id="${productId}"]`);
                             if (btn) btn.classList.remove('active');
+                        } else {
+                            // Success! Show Feedback
+                            const msg = !isAdded ? AlgWishlistSettings.i18n.added : AlgWishlistSettings.i18n.removed;
+                            this.showToast(msg);
                         }
                     } else {
                         throw new Error(data.data.message || 'Unknown error');
@@ -113,6 +117,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 counter.innerText = this.items.length;
                 counter.classList.toggle('hidden', this.items.length === 0);
             });
+        },
+
+        showToast: function (message) {
+            let toast = document.querySelector('.alg-wishlist-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.className = 'alg-wishlist-toast';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = message;
+            toast.classList.add('show');
+
+            // Clear previous timeout
+            if (this.toastTimeout) clearTimeout(this.toastTimeout);
+
+            this.toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         },
 
         handleDoofinderRender: function (e) {

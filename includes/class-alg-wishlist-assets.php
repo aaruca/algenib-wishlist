@@ -47,6 +47,27 @@ class Alg_Wishlist_Assets
             .alg-wishlist-btn svg { stroke: var(--alg-wishlist-primary); }
             .alg-wishlist-btn.active svg { fill: var(--alg-wishlist-active); stroke: var(--alg-wishlist-active); }
             {$custom}
+            
+            /* Toast Notification */
+            .alg-wishlist-toast {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #333;
+                color: #fff;
+                padding: 12px 24px;
+                border-radius: 4px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 9999;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.3s, transform 0.3s;
+                font-size: 14px;
+            }
+            .alg-wishlist-toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
         ";
 
         wp_add_inline_style('alg-wishlist-css', $custom_css);
