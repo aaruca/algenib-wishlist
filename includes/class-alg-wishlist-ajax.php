@@ -15,7 +15,9 @@ class Alg_Wishlist_Ajax
     public function add_to_wishlist()
     {
         // Verify Nonce
-        // check_ajax_referer( 'alg_wishlist_nonce', 'nonce' );
+        if (!check_ajax_referer('alg_wishlist_nonce', 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Invalid Nonce'));
+        }
 
         $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
         $variation_id = isset($_POST['variation_id']) ? intval($_POST['variation_id']) : 0;
