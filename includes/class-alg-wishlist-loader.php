@@ -77,6 +77,11 @@ class Alg_Wishlist_Loader
 
     private function define_integrations()
     {
+        add_action('plugins_loaded', array($this, 'load_integrations'), 20);
+    }
+
+    public function load_integrations()
+    {
         // Bricks Integration
         if (defined('BRICKS_VERSION')) {
             require_once ALG_WISHLIST_PATH . 'includes/integrations/class-alg-wishlist-bricks.php';
