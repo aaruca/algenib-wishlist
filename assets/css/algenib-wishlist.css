@@ -1,0 +1,63 @@
+/* Algenib Wishlist CSS */
+
+/* Button Base */
+.alg-add-to-wishlist {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    padding: 5px;
+}
+
+/* Icon Styling */
+.alg-add-to-wishlist svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s ease;
+}
+
+/* Active State (Added) */
+.alg-add-to-wishlist.active svg {
+    fill: #ff4d4d; /* Red fill */
+    stroke: #ff4d4d;
+}
+
+/* Doofinder Button Specifics */
+.wbw-doofinder-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    color: #666;
+}
+.wbw-doofinder-btn:hover {
+    color: #ff4d4d;
+}
+.wbw-doofinder-btn.active {
+    color: #ff4d4d;
+}
+.wbw-doofinder-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Counter Badge */
+.alg-wishlist-count {
+    background: #ff4d4d;
+    color: #fff;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+}
+.alg-wishlist-count.hidden {
+    display: none;
+}
