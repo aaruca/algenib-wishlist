@@ -87,7 +87,7 @@ class Alg_Wishlist_Loader
     {
         // Bricks Integration
         require_once ALG_WISHLIST_PATH . 'includes/integrations/class-alg-wishlist-bricks.php';
-        // Initialize Bricks elements registration
+        // Initialize Bricks integration (Query & Elements)
         Alg_Wishlist_Bricks::init();
 
         // Doofinder Integration
