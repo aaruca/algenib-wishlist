@@ -45,6 +45,9 @@ class Alg_Wishlist_Loader
             add_action('admin_menu', array($admin, 'add_plugin_admin_menu'));
             add_action('admin_init', array($admin, 'register_settings'));
             add_action('admin_enqueue_scripts', array($admin, 'enqueue_styles'));
+
+            // DB Health Check
+            add_action('admin_init', array($this, 'verify_database_tables'));
         }
     }
 
@@ -98,6 +101,19 @@ class Alg_Wishlist_Loader
     public function run()
     {
         // Run logic
+    }
+
+    /**
+     * Self-healing: Ensure tables exist if missing
+     */
+    public function verify_database_tables()
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'alg_wishlists';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            require_once ALG_WISHLIST_PATH . 'includes/class-alg-wishlist-activator.php';
+            Alg_Wishlist_Activator::activate();
+        }
     }
 
 }

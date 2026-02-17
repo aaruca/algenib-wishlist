@@ -56,16 +56,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 body: formData
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        // Sync server state just in case
+                        // Sync server state
                         this.items = data.data.items.map(String);
                         this.updateUI();
+
+                        // Check if the item we tried to add is actually there
+                        const serverHasItem = this.items.includes(productId);
+                        if (!isAdded && !serverHasItem) {
+                            // We tried to add, but server didn't save it -> Revert
+                            console.warn('Server failed to save item');
+                            // Force UI update to remove it
+                            const btn = document.querySelector(`.alg-add-to-wishlist[data-product-id="${productId}"]`);
+                            if (btn) btn.classList.remove('active');
+                        }
                     } else {
-                        // Revert on failure
-                        console.error('Wishlist Action Failed', data);
+                        throw new Error(data.data.message || 'Unknown error');
                     }
+                })
+                .catch(error => {
+                    console.error('Wishlist Action Failed:', error);
+                    // Revert UI state
+                    if (isAdded) {
+                        this.items.push(productId); // Put it back
+                    } else {
+                        this.items = this.items.filter(id => id !== productId); // Remove it
+                    }
+                    this.updateUI();
+
+                    alert('Could not update wishlist: ' + error.message);
                 });
         },
 
