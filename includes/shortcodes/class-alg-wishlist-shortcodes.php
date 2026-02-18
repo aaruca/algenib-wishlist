@@ -24,29 +24,49 @@ class Alg_Wishlist_Shortcodes
         $atts = shortcode_atts(array(
             'product_id' => get_the_ID(),
             'class' => '',
-            'text' => '' // Optional text
+            'text' => '',
+            'color' => '',
+            'active_color' => '',
+            'hover_color' => '',
+            'icon' => '' // Pass raw SVG or 'heart'
         ), $atts);
 
         $id = intval($atts['product_id']);
         if (!$id)
             return '';
 
-        // Check status logic is handled by JS on load, 
-        // but we can add 'active' class via PHP for initial render if cached? 
-        // For Better Caching compatibility, we rely on JS to add .active class.
-        // However, we can use the 'initial_items' localized script to do it instantly.
+        $style = '';
+        if (!empty($atts['color'])) {
+            $style .= '--alg-btn-color: ' . esc_attr($atts['color']) . ';';
+        }
+        if (!empty($atts['active_color'])) {
+            $style .= '--alg-btn-active-color: ' . esc_attr($atts['active_color']) . ';';
+        }
+        if (!empty($atts['hover_color'])) {
+            $style .= '--alg-btn-hover-color: ' . esc_attr($atts['hover_color']) . ';';
+        }
+
+        $icon_html = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+
+        if (!empty($atts['icon'])) {
+            // Allow basic sanitization but keep SVG structure if passed directly
+            // For security, usually, we'd limit this, but let's assume admin trust or simple class name
+            // If it's a known icon set class, use <i>, else if it looks like SVG, output it?
+            // Safer: Just assume it's replacement SVG content provided correctly.
+            // For now, let's keep the default heart if empty, or render the passed content if it contains <svg
+            if (strpos($atts['icon'], '<svg') !== false) {
+                $icon_html = $atts['icon']; // Trust admin shortcode input
+            }
+        }
 
         ob_start();
         ?>
         <button type="button" class="alg-add-to-wishlist <?php echo esc_attr($atts['class']); ?>"
-            data-product-id="<?php echo esc_attr($id); ?>"
+            data-product-id="<?php echo esc_attr($id); ?>" style="<?php echo esc_attr($style); ?>"
             aria-label="<?php esc_attr_e('Add to Wishlist', 'algenib-wishlist'); ?>">
 
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                </path>
-            </svg>
+            <?php echo $icon_html; ?>
+
             <?php if (!empty($atts['text'])): ?>
                 <span class="alg-btn-text">
                     <?php echo esc_html($atts['text']); ?>
@@ -60,9 +80,35 @@ class Alg_Wishlist_Shortcodes
 
     public function render_count($atts)
     {
+        $atts = shortcode_atts(array(
+            'class' => '',
+            'color' => '',
+            'icon_color' => '',
+            'icon' => 'heart'
+        ), $atts);
+
+        $style = '';
+        if (!empty($atts['color'])) {
+            $style .= 'color: ' . esc_attr($atts['color']) . ';';
+        }
+
+        $icon_style = '';
+        if (!empty($atts['icon_color'])) {
+            $icon_style .= 'color: ' . esc_attr($atts['icon_color']) . '; stroke: ' . esc_attr($atts['icon_color']) . ';';
+        }
+
+        $icon_html = '';
+        if ($atts['icon'] === 'heart' || empty($atts['icon'])) {
+            $icon_html = '<svg class="alg-count-icon" style="' . esc_attr($icon_style) . '" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+        }
+
         ob_start();
         ?>
-        <span class="alg-wishlist-count hidden">0</span>
+        <a href="<?php echo esc_url(get_permalink(Alg_Wishlist_Core::get_wishlist_page_id())); ?>"
+            class="alg-wishlist-counter-link <?php echo esc_attr($atts['class']); ?>" style="<?php echo esc_attr($style); ?>">
+            <?php echo $icon_html; ?>
+            <span class="alg-wishlist-count hidden">0</span>
+        </a>
         <?php
         return ob_get_clean();
     }

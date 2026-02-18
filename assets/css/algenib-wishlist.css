@@ -10,6 +10,15 @@
     border: none;
     background: transparent;
     padding: 5px;
+    color: var(--alg-btn-color, inherit);
+}
+
+.alg-add-to-wishlist:hover {
+    color: var(--alg-btn-hover-color, #ff4d4d);
+}
+
+.alg-add-to-wishlist.active {
+    color: var(--alg-btn-active-color, #ff4d4d);
 }
 
 /* Icon Styling */
@@ -24,8 +33,17 @@
 
 /* Active State (Added) */
 .alg-add-to-wishlist.active svg {
-    fill: #ff4d4d; /* Red fill */
-    stroke: #ff4d4d;
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+/* Counter Link */
+.alg-wishlist-counter-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    gap: 5px;
 }
 
 /* Doofinder Button Specifics */
@@ -36,12 +54,15 @@
     z-index: 10;
     color: #666;
 }
+
 .wbw-doofinder-btn:hover {
     color: #ff4d4d;
 }
+
 .wbw-doofinder-btn.active {
     color: #ff4d4d;
 }
+
 .wbw-doofinder-btn svg {
     width: 20px;
     height: 20px;
@@ -58,6 +79,7 @@
     min-width: 18px;
     text-align: center;
 }
+
 .alg-wishlist-count.hidden {
     display: none;
 }

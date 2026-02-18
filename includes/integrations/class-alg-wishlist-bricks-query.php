@@ -97,6 +97,11 @@ class Alg_Wishlist_Bricks_Query
      */
     public static function set_loop_object_id($object_id, $object, $query_obj)
     {
+        // Fix: Warning: Attempt to read property "object_type" on string
+        if (!is_object($query_obj)) {
+            return $object_id;
+        }
+
         if ($query_obj->object_type !== self::QUERY_TYPE) {
             return $object_id;
         }
