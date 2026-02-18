@@ -33,14 +33,18 @@ class Alg_Wishlist_Assets
             )
         ));
 
-        // Inject Custom Styles
         $options = get_option('alg_wishlist_settings');
         $primary = isset($options['alg_wishlist_color_primary']) ? $options['alg_wishlist_color_primary'] : '#ff4b4b';
+        $hover = isset($options['alg_wishlist_color_hover']) ? $options['alg_wishlist_color_hover'] : '#ff0000';
         $active = isset($options['alg_wishlist_color_active']) ? $options['alg_wishlist_color_active'] : '#cc0000';
         $custom = isset($options['alg_wishlist_custom_css']) ? $options['alg_wishlist_custom_css'] : '';
 
         $custom_css = "
             :root {
+                --alg-btn-color: {$primary};
+                --alg-btn-hover-color: {$hover};
+                --alg-btn-active-color: {$active};
+                
                 --alg-wishlist-primary: {$primary};
                 --alg-wishlist-active: {$active};
             }

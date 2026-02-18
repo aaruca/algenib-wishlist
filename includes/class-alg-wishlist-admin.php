@@ -59,12 +59,46 @@ class Alg_Wishlist_Admin
         );
 
         add_settings_field(
+            'alg_wishlist_color_hover',
+            'Hover Color',
+            array($this, 'render_color_picker'),
+            'algenib-wishlist',
+            'alg_wishlist_style_section',
+            array('label_for' => 'alg_wishlist_color_hover', 'default' => '#ff0000')
+        );
+
+        add_settings_field(
             'alg_wishlist_color_active',
             'Active Color (Filled)',
             array($this, 'render_color_picker'),
             'algenib-wishlist',
             'alg_wishlist_style_section',
             array('label_for' => 'alg_wishlist_color_active', 'default' => '#cc0000')
+        );
+
+        add_settings_field(
+            'alg_wishlist_icon_svg',
+            'Custom Icon SVG',
+            array($this, 'render_textarea'),
+            'algenib-wishlist',
+            'alg_wishlist_style_section',
+            array('label_for' => 'alg_wishlist_icon_svg', 'description' => 'Paste your custom raw SVG code here to replace the default heart.')
+        );
+
+        add_settings_section(
+            'alg_wishlist_general_section',
+            'General Settings',
+            null,
+            'algenib-wishlist'
+        );
+
+        add_settings_field(
+            'alg_wishlist_page_id',
+            'Wishlist Page',
+            array($this, 'render_page_selector'),
+            'algenib-wishlist',
+            'alg_wishlist_general_section',
+            array('label_for' => 'alg_wishlist_page_id')
         );
 
         add_settings_field(
@@ -75,6 +109,19 @@ class Alg_Wishlist_Admin
             'alg_wishlist_style_section',
             array('label_for' => 'alg_wishlist_custom_css')
         );
+    }
+
+    public function render_page_selector($args)
+    {
+        $options = get_option('alg_wishlist_settings');
+        $selected = isset($options[$args['label_for']]) ? $options[$args['label_for']] : 0;
+
+        wp_dropdown_pages(array(
+            'name' => 'alg_wishlist_settings[' . esc_attr($args['label_for']) . ']',
+            'selected' => $selected,
+            'show_option_none' => '-- Select Page --',
+            'option_none_value' => '0',
+        ));
     }
 
     public function render_color_picker($args)

@@ -235,4 +235,16 @@ class Alg_Wishlist_Core
         }
     }
 
+    /**
+     * Get Wishlist Page ID
+     */
+    public static function get_wishlist_page_id()
+    {
+        $settings = get_option('alg_wishlist_settings');
+        if (isset($settings['alg_wishlist_page_id'])) {
+            return intval($settings['alg_wishlist_page_id']);
+        }
+        return 0;
+    }
+
 }
